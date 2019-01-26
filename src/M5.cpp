@@ -80,6 +80,12 @@ class Wheel {
         if (centerOffset < 0) {
             deg -= 180;
         }
+        if (deg < -90){
+            deg += 180;
+        }
+        if (deg > 90){
+            deg -= 180;
+        }
         return deg;
     }
     //Gets an adjustment to be applied to the throttle on 
@@ -146,7 +152,6 @@ void PrintDriveValues (DriveValues dv) {
 }
 */
 Wheelbase wb;
-ros::NodeHandle n;
 ros::Publisher steerpub;
 ros::Publisher drivepub;
 void UpdateDrive (const geometry_msgs::Twist::ConstPtr& msg) {
@@ -157,6 +162,7 @@ void UpdateDrive (const geometry_msgs::Twist::ConstPtr& msg) {
 int main(int argc, char **argv) {
     wb = Wheelbase();
     ros::init(argc, argv, "M5");
+    ros::NodeHandle n;
 
     ros::Subscriber sub = n.subscribe("cmd_vel", 1000, UpdateDrive);
     steerpub = n.advertise<motion_control::Mobility>("steering", 1000);
