@@ -10,52 +10,44 @@ struct DriveValues{
     double front_right;
     double back_left;
     double back_right;
+    DriveValues(double fl, double fr, double bl, double br) : front_left(fl), front_right(fr), back_left(bl), back_right(br) {}
+    DriveValues() {}
+    DriveValues operator* (double mult) {
+        return {front_left*mult, front_right*mult, back_left*mult, back_right*mult};
+    };
+    DriveValues scaleToMaximum (double cap){
+        //Get the max out of the four values
+        double max = front_left;
+        if (front_right > max) {
+            max = front_right;
+        }
+        if (back_left > max) {
+            max = back_left;
+        }
+        if (back_right > max) {
+            max = back_right;
+        }
+        if (max > cap) {
+            double ratio = cap / max;
+            return *this * ratio;
+        }
+        return *this;
+    }
+    motion_control::Mobility toMessage() {
+        motion_control::Mobility msg;
+        msg.front_left = front_left;
+        msg.front_right = front_right;
+        msg.rear_left = back_left;
+        msg.rear_right = back_right;
+        return msg;
+    }
 };
-DriveValues ConstructDriveValues(double fl, double fr, double bl, double br) {
-    DriveValues d;
-    d.front_left = fl;
-    d.front_right = fr;
-    d.back_left = bl;
-    d.back_right = br;
-    return d;
-}    
-DriveValues MultiplyDriveValues(DriveValues dv, double multiplier) {
-        dv.front_left *= multiplier;
-        dv.front_right *= multiplier;
-        dv.back_left *= multiplier;
-        dv.back_right *= multiplier;
-        return dv;
-}
-DriveValues ClampDriveValues (DriveValues dv, double cap){
-    //Get the max out of the four values
-    double max = dv.front_left;
-    if (dv.front_right > max) {
-        max = dv.front_right;
-    }
-    if (dv.back_left > max) {
-        max = dv.back_left;
-    }
-    if (dv.back_right > max) {
-        max = dv.back_right;
-    }
-    //Reduce all values if they exceed the cap
-    if (max > cap) {
-        double ratio = cap / max;
-        dv = MultiplyDriveValues(dv, ratio);
-    }
-    return dv;
-}
-motion_control::Mobility DriveValuesToMsg (DriveValues dv) {
-    motion_control::Mobility msg;
-    msg.front_left = dv.front_left;
-    msg.front_right = dv.front_right;
-    msg.rear_left = dv.back_left;
-    msg.rear_right = dv.back_right;
-    return msg;
-}
+
 struct DriveCommand {
-    DriveValues WheelPower;
     DriveValues WheelAngles;
+    DriveValues WheelPower;
+    DriveCommand(){}
+    DriveCommand(DriveValues a, DriveValues b) : WheelAngles(a), WheelPower(b){}
 };
 //Represetitive of a wheel on the chassis, defined by its 
 //position in relation to the center of the chassis
@@ -108,42 +100,41 @@ class Wheelbase {
     }
     
     DriveValues CalculateRatios(double centerOffset){
-        DriveValues ratios;
 
-        //Calculating radius on each wheel
-        ratios.front_left   = front_left.getRadiusOfTurn(centerOffset);
-        ratios.front_right  = front_right.getRadiusOfTurn(centerOffset);
-        ratios.back_left    = back_left.getRadiusOfTurn(centerOffset);
-        ratios.back_right   = back_right.getRadiusOfTurn(centerOffset);
+        //Calculating radius about the centerpoint of the turn for each wheel
+        DriveValues ratios(
+            front_left.getRadiusOfTurn(centerOffset),
+            front_right.getRadiusOfTurn(centerOffset),
+            back_left.getRadiusOfTurn(centerOffset),
+            back_right.getRadiusOfTurn(centerOffset)
+        );
 
         //Summing all the radii for wheel power distribution
         double total = (ratios.front_left + ratios.front_right + ratios.back_left + ratios.back_right);
 
         //Converting all radii into power ratios
-        ratios = MultiplyDriveValues(ratios, 4/total);
+        ratios = ratios * (4/total);
 
         return ratios;
     }
     //Calculates the angles to set wheels to
     DriveValues CalculateAngles(double centerOffset) {
-        return ConstructDriveValues(front_left.getAngle(centerOffset),
-                                    front_right.getAngle(centerOffset), 
-                                    back_left.getAngle(centerOffset), 
-                                    back_right.getAngle(centerOffset)
-                                    );
+        return DriveValues(     front_left.getAngle(centerOffset),
+                                front_right.getAngle(centerOffset), 
+                                back_left.getAngle(centerOffset), 
+                                back_right.getAngle(centerOffset)
+                            );
     }
     //Converts throttle and steering into a DriveCommand, minimum 
     //turning radius defined by minRadius
     DriveCommand TwistToMotor (double throttle, double steer, double minRadius) {
-        DriveCommand command;
         if (fabs(steer) <= 0.005) {
-            command.WheelAngles = ConstructDriveValues(0,0,0,0);
-            command.WheelPower = MultiplyDriveValues(ConstructDriveValues(throttle,throttle,throttle,throttle), throttle);
-            return command;
+            return DriveCommand(DriveValues(0,0,0,0), DriveValues(throttle,throttle,throttle,throttle));;
         } 
+        DriveCommand command;
         double radius = minRadius / steer;
         command.WheelAngles = CalculateAngles(radius);
-        command.WheelPower = MultiplyDriveValues(ClampDriveValues(CalculateRatios(radius),1), throttle);
+        command.WheelPower = CalculateRatios(radius).scaleToMaximum(1) * throttle;
         return command;
     }
 
@@ -157,11 +148,13 @@ void PrintDriveValues (DriveValues dv) {
 Wheelbase wb;
 ros::Publisher steerpub;
 ros::Publisher drivepub;
+
 void UpdateDrive (const geometry_msgs::Twist::ConstPtr& msg) {
     DriveCommand command = wb.TwistToMotor(msg->linear.x, msg->angular.z, 1);
-    steerpub.publish(DriveValuesToMsg(command.WheelAngles));
-    drivepub.publish(DriveValuesToMsg(command.WheelPower));
+    steerpub.publish(command.WheelAngles.toMessage());
+    drivepub.publish(command.WheelPower.toMessage());
 }
+
 int main(int argc, char **argv) {
     wb = Wheelbase();
     ros::init(argc, argv, "M5");
