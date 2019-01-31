@@ -57,7 +57,8 @@ struct DriveCommand {
     DriveValues WheelPower;
     DriveValues WheelAngles;
 };
-
+//Represetitive of a wheel on the chassis, defined by its 
+//position in relation to the center of the chassis
 class Wheel {
     private:
     public:
@@ -77,9 +78,9 @@ class Wheel {
     //from above
     double getAngle(double centerOffset) {
         double deg = atan2(XPosition, centerOffset-YPosition)*180/M_PI;
-        if (centerOffset < 0) {
+        /*if (centerOffset < 0) {
             deg -= 180;
-        }
+        }*/
         if (deg < -90){
             deg += 180;
         }
@@ -131,16 +132,18 @@ class Wheelbase {
                                     back_right.getAngle(centerOffset)
                                     );
     }
+    //Converts throttle and steering into a DriveCommand, minimum 
+    //turning radius defined by minRadius
     DriveCommand TwistToMotor (double throttle, double steer, double minRadius) {
         DriveCommand command;
         if (fabs(steer) <= 0.005) {
             command.WheelAngles = ConstructDriveValues(0,0,0,0);
-            command.WheelPower = MultiplyDriveValues(ClampDriveValues(ConstructDriveValues(throttle,throttle,throttle,throttle),1), throttle);
+            command.WheelPower = MultiplyDriveValues(ConstructDriveValues(throttle,throttle,throttle,throttle), throttle);
             return command;
         } 
         double radius = minRadius / steer;
         command.WheelAngles = CalculateAngles(radius);
-        command.WheelPower = CalculateRatios(radius);
+        command.WheelPower = MultiplyDriveValues(ClampDriveValues(CalculateRatios(radius),1), throttle);
         return command;
     }
 
