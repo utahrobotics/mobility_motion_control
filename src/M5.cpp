@@ -5,6 +5,7 @@
 #include "geometry_msgs/Twist.h"
 #include "motion_control/Mobility.h"
 
+//Used to contain 4 doubles for internal methods
 struct DriveValues{
     double front_left;
     double front_right;
@@ -70,9 +71,7 @@ class Wheel {
     //from above
     double getAngle(double centerOffset) {
         double deg = atan2(XPosition, centerOffset-YPosition)*180/M_PI;
-        /*if (centerOffset < 0) {
-            deg -= 180;
-        }*/
+        
         if (deg < -90){
             deg += 180;
         }
@@ -88,6 +87,9 @@ class Wheel {
     }
 
 };
+//Used to contain 4 wheel objects and provide methods to calculate 
+//the speed and angle each wheel should be set to to perform turns 
+//properly.
 class Wheelbase {
     private:
     Wheel front_left, front_right, back_left, back_right;
@@ -98,7 +100,8 @@ class Wheelbase {
         back_left = Wheel(-0.5,0.35);
         back_right = Wheel(-0.5,-0.35);
     }
-    
+    //Calculates the power ratios between wheels, outer values will be above 1 and inner below
+    //Use ClampDriveValues to make outer ratios equal to 1
     DriveValues CalculateRatios(double centerOffset){
 
         //Calculating radius about the centerpoint of the turn for each wheel
@@ -109,7 +112,7 @@ class Wheelbase {
             back_right.getRadiusOfTurn(centerOffset)
         );
 
-        //Summing all the radii for wheel power distribution
+        //Summing all the radii 
         double total = (ratios.front_left + ratios.front_right + ratios.back_left + ratios.back_right);
 
         //Converting all radii into power ratios
@@ -157,11 +160,14 @@ void UpdateDrive (const geometry_msgs::Twist::ConstPtr& msg) {
 
 int main(int argc, char **argv) {
     wb = Wheelbase();
+    
     ros::init(argc, argv, "M5");
     ros::NodeHandle n;
 
     ros::Subscriber sub = n.subscribe("cmd_vel", 1000, UpdateDrive);
+
     steerpub = n.advertise<motion_control::Mobility>("steering", 1000);
     drivepub = n.advertise<motion_control::Mobility>("odrive_vel", 1000);
+
     ros::spin();
 }
