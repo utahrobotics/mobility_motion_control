@@ -197,3 +197,8 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+add_executable(m5 src/M5.cpp)
+target_link_libraries(m5 ${catkin_LIBRARIES})
+
+add_executable(m5test src/M5Test.cpp)
+target_link_libraries(m5test ${catkin_LIBRARIES})
