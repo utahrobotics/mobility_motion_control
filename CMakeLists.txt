@@ -51,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   FILES
   Mobility.msg
+  RoboclawCommand.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -202,3 +203,9 @@ target_link_libraries(m5 ${catkin_LIBRARIES})
 
 add_executable(m5test src/M5Test.cpp)
 target_link_libraries(m5test ${catkin_LIBRARIES})
+
+add_executable(m5steppertest src/M5StepperTest.cpp)
+target_link_libraries(m5steppertest ${catkin_LIBRARIES})
+
+add_executable(digger src/DiggerControl.cpp)
+target_link_libraries(digger ${catkin_LIBRARIES})

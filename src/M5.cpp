@@ -14,7 +14,7 @@ struct DriveValues{
     DriveValues(double fl, double fr, double bl, double br) : front_left(fl), front_right(fr), back_left(bl), back_right(br) {}
     DriveValues() {}
     DriveValues operator* (double mult) {
-        return {front_left*mult, front_right*mult, back_left*mult, back_right*mult};
+        return DriveValues(front_left*mult, front_right*mult, back_left*mult, back_right*mult);
     };
     DriveValues scaleToMaximum (double cap){
         //Get the max out of the four values
@@ -154,6 +154,7 @@ ros::Publisher drivepub;
 
 void UpdateDrive (const geometry_msgs::Twist::ConstPtr& msg) {
     DriveCommand command = wb.TwistToMotor(msg->linear.x, msg->angular.z, 1);
+    printf("%f\n", msg->angular.z);
     steerpub.publish(command.WheelAngles.toMessage());
     drivepub.publish(command.WheelPower.toMessage());
 }
