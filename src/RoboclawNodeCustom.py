@@ -99,8 +99,15 @@ class Node:
 # Here lies the custom function 
 # Author - Logan Peterson
     def cmd_dig_callback(self, message):
+        
         self.last_set_speed_time = rospy.get_rostime()
         if (message.M1 >= 0):
+            roboclaw.ForwardM1(self.address, message.M1)
+        else:
+            roboclaw.BackwardM1(self.address, -message.M1)
+
+        if (message.M2 >= 0):
+            roboclaw.SpeedAccelDeccelPositionM2(self.address, )
             roboclaw.ForwardM1(self.address, message.M1)
         else:
             roboclaw.BackwardM1(self.address, -message.M1)
