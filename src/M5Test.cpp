@@ -47,7 +47,6 @@ void UpdateDrive (const motion_control::Mobility::ConstPtr& msg) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "M5Test");
     ros::NodeHandle n;
-    //ros::Time::init();
     ros::Subscriber steersub = n.subscribe("steering", 1000, UpdateSteer);
     ros::Subscriber drivesub = n.subscribe("odrive_vel", 1000, UpdateDrive);
     ros::Publisher cmd_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
