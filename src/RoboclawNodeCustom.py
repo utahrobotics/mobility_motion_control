@@ -70,7 +70,7 @@ class Node:
         self.last_set_speed_time = rospy.get_rostime()
 
         #rospy.Subscriber("cmd_vel", Twist, self.cmd_vel_callback)
-        rospy.Subscriber("cmd_dig", RoboclawCommand, self.cmd_dig_callback)
+        rospy.Subscriber("cmd_roboclaw", RoboclawCommand, self.cmd_dig_callback)
 
         rospy.sleep(1)
 

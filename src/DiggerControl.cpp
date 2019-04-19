@@ -30,10 +30,10 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "DiggerControl");
     ros::NodeHandle n;
 
-    ros::Subscriber sub1 = n.subscribe("roboclaw1", 1000, UpdateLinear);
-    ros::Subscriber sub2 = n.subscribe("roboclaw2", 1000, UpdateDigger);
+    ros::Subscriber sub1 = n.subscribe("linear_rc", 1000, UpdateLinear);
+    ros::Subscriber sub2 = n.subscribe("digger_rc", 1000, UpdateDigger);
 
-    commandpub = n.advertise<motion_control::RoboclawCommand>("cmd_dig", 1000);
+    commandpub = n.advertise<motion_control::RoboclawCommand>("cmd_roboclaw", 1000);
 
     ros::spin();
 }
