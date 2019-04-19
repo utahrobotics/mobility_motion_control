@@ -200,12 +200,16 @@ include_directories(
 # catkin_add_nosetests(test)
 add_executable(m5 src/M5.cpp)
 target_link_libraries(m5 ${catkin_LIBRARIES})
+add_dependencies(m5 motion_control_generate_messages_cpp)
 
 add_executable(m5test src/M5Test.cpp)
 target_link_libraries(m5test ${catkin_LIBRARIES})
+add_dependencies(m5test motion_control_generate_messages_cpp)
 
 add_executable(m5steppertest src/M5StepperTest.cpp)
 target_link_libraries(m5steppertest ${catkin_LIBRARIES})
+add_dependencies(m5steppertest motion_control_generate_messages_cpp)
 
 add_executable(digger src/DiggerControl.cpp)
 target_link_libraries(digger ${catkin_LIBRARIES})
+add_dependencies(digger motion_control_generate_messages_cpp)
