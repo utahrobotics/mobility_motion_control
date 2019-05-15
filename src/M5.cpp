@@ -153,7 +153,7 @@ ros::Publisher steerpub;
 ros::Publisher drivepub;
 
 void UpdateDrive (const geometry_msgs::Twist::ConstPtr& msg) {
-    DriveCommand command = wb.TwistToMotor(msg->linear.x, msg->angular.z, 1);
+    DriveCommand command = wb.TwistToMotor(msg->linear.x, msg->angular.z, 0.6);
     printf("%f\n", msg->angular.z);
     steerpub.publish(command.WheelAngles.toMessage());
     drivepub.publish(command.WheelPower.toMessage());
@@ -165,10 +165,10 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "M5");
     ros::NodeHandle n;
 
-    ros::Subscriber sub = n.subscribe("cmd_vel", 1000, UpdateDrive);
+    ros::Subscriber sub = n.subscribe("cmd_vel", 100, UpdateDrive);
 
-    steerpub = n.advertise<motion_control::Mobility>("steering", 1000);
-    drivepub = n.advertise<motion_control::Mobility>("odrive_vel", 1000);
+    steerpub = n.advertise<motion_control::Mobility>("steering", 100);
+    drivepub = n.advertise<motion_control::Mobility>("odrive_vel", 100);
 
     ros::spin();
 }

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import diagnostic_msgs
 import diagnostic_updater
 import roboclaw_driver as roboclaw
@@ -38,10 +39,11 @@ class Node:
 
         # TODO need someway to check if address is correct
         try:
+	    rospy.loginfo(dev_name)
             roboclaw.Open(dev_name, baud_rate)
         except Exception as e:
             rospy.logfatal("Could not connect to Roboclaw")
-            rospy.logdebug(e)
+            rospy.logfatal(e)
             rospy.signal_shutdown("Could not connect to Roboclaw")
 
         self.updater = diagnostic_updater.Updater()
@@ -102,15 +104,14 @@ class Node:
         
         self.last_set_speed_time = rospy.get_rostime()
         if (message.M1 >= 0):
-            roboclaw.ForwardM1(self.address, message.M1)
+            roboclaw.ForwardM1(self.address, int(message.M1*255))
         else:
-            roboclaw.BackwardM1(self.address, -message.M1)
+            roboclaw.BackwardM1(self.address, int(-message.M1*255))
 
         if (message.M2 >= 0):
-            roboclaw.SpeedAccelDeccelPositionM2(self.address, )
-            roboclaw.ForwardM1(self.address, message.M1)
+            roboclaw.ForwardM2(self.address, int(message.M2*255))
         else:
-            roboclaw.BackwardM1(self.address, -message.M1)
+            roboclaw.BackwardM2(self.address, int(-message.M2*255))
 
     '''def cmd_vel_callback(self, twist):
         self.last_set_speed_time = rospy.get_rostime()

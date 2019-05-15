@@ -213,3 +213,5 @@ add_dependencies(m5steppertest motion_control_generate_messages_cpp)
 add_executable(digger src/DiggerControl.cpp)
 target_link_libraries(digger ${catkin_LIBRARIES})
 add_dependencies(digger motion_control_generate_messages_cpp)
+
+
