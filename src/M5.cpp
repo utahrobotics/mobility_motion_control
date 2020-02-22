@@ -168,7 +168,7 @@ int main(int argc, char **argv) {
     ros::Subscriber sub = n.subscribe("cmd_vel", 100, UpdateDrive);
 
     steerpub = n.advertise<motion_control::Mobility>("steering", 100);
-    drivepub = n.advertise<motion_control::Mobility>("odrive_vel", 100);
+    drivepub = n.advertise<motion_control::Mobility>("motor_vel", 100);
 
     ros::spin();
 }
